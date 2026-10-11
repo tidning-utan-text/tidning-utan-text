@@ -42,6 +42,7 @@ function dictTranslate(items){
   });
 }
 async function agentTranslate(items){
+  console.log('SCRIPT v2-robust start');
   const token = process.env.GITHUB_TOKEN || process.env.GH_MODELS_TOKEN || process.env.OPENAI_API_KEY;
   if(!token){ console.log('Ingen LLM-token, använder dictionary-fallback'); return null; }
   const isOpenAI = !!process.env.OPENAI_API_KEY && !process.env.GITHUB_TOKEN;
@@ -54,6 +55,7 @@ async function agentTranslate(items){
     if(!r.ok){ console.log('LLM fail', r.status, await r.text().then(t=>t.slice(0,300))); return null; }
     const j = await r.json();
     let txt = j.choices?.[0]?.message?.content || '';
+    console.log('LLM råsvar (300 tecken):', JSON.stringify(txt.slice(0,300)));
     txt = txt.replace(/```json|```/g,'').trim();
     const m = txt.match(/\[[\s\S]*\]/);
     if(!m){ console.log('LLM gav ingen JSON-array, råsvar:', txt.slice(0,300)); return null; }
