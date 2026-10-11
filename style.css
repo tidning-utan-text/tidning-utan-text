@@ -22,5 +22,18 @@ body.dark{--bg:#111214;--fg:#FAFAF7;--card:#22252A}
 .tabs a{text-decoration:none;min-width:48px;min-height:48px;text-align:center;opacity:.55}
 .tabs a.active{opacity:1;transform:scale(1.25)}
 .loading{font-size:4rem;text-align:center;grid-column:1/-1;padding:4rem}
+.more{position:absolute;bottom:.6rem;right:.6rem;font-size:1.4rem;background:rgba(0,0,0,.55);border-radius:50%;padding:.3rem}
+.article{max-width:700px;margin:0 auto;padding:1rem;width:100%;flex:1;display:flex;flex-direction:column;gap:1rem}
+.back{font-size:2.2rem;text-decoration:none;min-width:48px;min-height:48px}
+.hero{position:relative;border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,#333,#777);min-height:280px}
+.hero img{width:100%;height:360px;object-fit:cover;display:block}
+.hero-title{position:absolute;bottom:0;width:100%;font-size:2.6rem;text-align:center;background:rgba(0,0,0,.55);padding:.8rem;letter-spacing:.3rem}
+.meta{display:flex;justify-content:center;gap:1rem;font-size:1.8rem}
+.story{display:flex;flex-direction:column;gap:.8rem;background:var(--card);border-radius:1rem;padding:1.2rem}
+.line{font-size:1.9rem;line-height:1.6;letter-spacing:.15rem;background:var(--bg);border-radius:.7rem;padding:.7rem}
+.react{display:flex;justify-content:space-around;font-size:2.4rem;cursor:pointer}
+.react span{min-width:48px;min-height:48px;text-align:center}
+.related{display:flex;justify-content:space-around;font-size:1.8rem;background:var(--card);border-radius:1rem;padding:.8rem}
+.related a{text-decoration:none;background:var(--bg);border-radius:.7rem;padding:.5rem}
 @media(max-width:500px){.card.large{grid-column:span 1}}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
