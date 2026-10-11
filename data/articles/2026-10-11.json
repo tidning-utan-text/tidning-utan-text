@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-11",
+  "articles": [
+    {
+      "id": 1,
+      "cat": "🌦️",
+      "emojis": [
+        "🌧️",
+        "➡️",
+        "☀️"
+      ],
+      "image": "https://picsum.photos/seed/vader662/1200/700",
+      "size": "large"
+    },
+    {
+      "id": 2,
+      "cat": "⚽",
+      "emojis": [
+        "🏀",
+        "⛹️",
+        "🏆"
+      ],
+      "image": "https://picsum.photos/seed/sport662/800/600",
+      "size": "small"
+    },
+    {
+      "id": 3,
+      "cat": "🌍",
+      "emojis": [
+        "🏛️",
+        "🤝",
+        "✅"
+      ],
+      "image": "https://picsum.photos/seed/varld662/800/600",
+      "size": "small"
+    },
+    {
+      "id": 4,
+      "cat": "🍔",
+      "emojis": [
+        "🍩",
+        "☕",
+        "🌙"
+      ],
+      "image": "https://picsum.photos/seed/mat662/800/600",
+      "size": "small"
+    },
+    {
+      "id": 5,
+      "cat": "🎬",
+      "emojis": [
+        "🎬",
+        "🍿",
+        "🏆"
+      ],
+      "image": "https://picsum.photos/seed/film662/800/600",
+      "size": "small"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+:root{--bg:#FAFAF7;--fg:#111214;--card:#E9ECEF;--red:#E63946;--blue:#2185D0;--yellow:#FFB703;--green:#2BA84A;--purple:#7B2CBF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1;min-height:100vh;display:flex;flex-direction:column}
+body.dark{--bg:#111214;--fg:#FAFAF7;--card:#22252A}
+.top{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:2px solid var(--card)}
+.logo{font-size:2.2rem;text-decoration:none}
+.topnav{display:flex;gap:1rem;font-size:1.6rem}
+.topnav a,.topnav button{background:none;border:0;font-size:1.6rem;cursor:pointer;text-decoration:none;min-width:48px;min-height:48px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:1rem;max-width:1100px;margin:0 auto;width:100%;flex:1}
+.card{border-radius:1rem;overflow:hidden;display:block;position:relative;background:linear-gradient(135deg,#333,#777);aspect-ratio:4/5;text-decoration:none;border-top:8px solid var(--card)}
+.card.large{grid-column:span 2;aspect-ratio:16/10}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.fallback{display:flex;align-items:center;justify-content:center;font-size:6rem;height:100%;min-height:200px}
+.emoji-bar{position:absolute;bottom:0;width:100%;font-size:2rem;padding:.6rem;text-align:center;background:rgba(0,0,0,.55);letter-spacing:.2rem}
+.cat{position:absolute;top:.5rem;left:.5rem;font-size:1.8rem;background:rgba(0,0,0,.55);border-radius:50%;padding:.3rem}
+.card[data-cat="⚽"]{border-color:var(--red)}
+.card[data-cat="🌦️"]{border-color:var(--blue)}
+.card[data-cat="🎬"]{border-color:var(--yellow)}
+.card[data-cat="🍔"]{border-color:var(--green)}
+.card[data-cat="🌍"]{border-color:var(--purple)}
+.tabs{display:flex;justify-content:space-around;font-size:2rem;padding:.8rem;position:sticky;bottom:0;background:var(--bg);border-top:2px solid var(--card)}
+.tabs a{text-decoration:none;min-width:48px;min-height:48px;text-align:center;opacity:.55}
+.tabs a.active{opacity:1;transform:scale(1.25)}
+.loading{font-size:4rem;text-align:center;grid-column:1/-1;padding:4rem}
+@media(max-width:500px){.card.large{grid-column:span 1}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
