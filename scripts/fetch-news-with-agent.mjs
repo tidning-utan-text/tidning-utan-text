@@ -47,14 +47,16 @@ async function agentTranslate(items){
   const url = isOpenAI ? 'https://api.openai.com/v1/chat/completions' : 'https://models.github.ai/inference/chat/completions';
   const model = isOpenAI ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
   const news = items.map((n,i)=>`${i+1}. ${n.title} / ${n.desc.slice(0,200)}`).join('\n');
-  const prompt = `Översätt dessa 5 verkliga nyheter till emoji-artiklar för en textfri tidning. Förstå innebörden.\n${news}\n\nRegler per artikel: cat en av 🌦️⚽🌍🍔🎬, title 5 emojis (inga ASCII-bokstäver/siffror, inga 1️⃣🔟🆕), story 6 rader med 5-7 emojis var, tidslinje 🕒📰🔍📍📈 + reaktioner. Returnera BARA JSON-array [{"cat":"⚽","title":[...],"story":[[...]]}].`;
+  const prompt = `Översätt dessa 5 verkliga nyheter till emoji-artiklar för en textfri tidning. Förstå innebörden.\n${news}\n\nRegler per artikel: cat en av 🌦️⚽🌍🍔🎬, title 5 emojis (inga ASCII-bokstäver/siffror, inga 1️⃣🔟🆕), story 6 rader med 5-7 emojis var, tidslinje 🕒📰🔍📍📈 + reaktioner. VIKTIGT: svara med ENDAST rå JSON-array, inget annat, ingen markdown, ingen förklaring. Börja med [ och sluta med ]. Format: [{"cat":"⚽","title":[...],"story":[[...]]}].`;
   try{
-    const r = await fetch(url,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],temperature:0.7,max_tokens:2000})});
+    const r = await fetch(url,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`},body:JSON.stringify({model,messages:[{role:'system',content:'Du svarar med endast rå JSON, aldrig text runtom.'},{role:'user',content:prompt}],temperature:0.2,max_tokens:2500})});
     if(!r.ok){ console.log('LLM fail', r.status, await r.text().then(t=>t.slice(0,300))); return null; }
     const j = await r.json();
     let txt = j.choices?.[0]?.message?.content || '';
     txt = txt.replace(/```json|```/g,'').trim();
-    const arr = JSON.parse(txt);
+    const m = txt.match(/\[[\s\S]*\]/);
+    if(!m){ console.log('LLM gav ingen JSON-array, råsvar:', txt.slice(0,300)); return null; }
+    const arr = JSON.parse(m[0]);
     console.log('Agent-översättning OK');
     return arr.map((a,i)=>({id:i+1,cat:['🌦️','⚽','🌍','🍔','🎬'].includes(a.cat)?a.cat:'🌍',emojis:(a.title||[]).slice(0,5),image:items[i]?.realImage||`https://picsum.photos/seed/agent${hash(items[i]?.title||String(i))%9973}/1200/700`,size:i===0?'large':'small',story:(a.story||[]).slice(0,7)}));
   }catch(e){ console.log('LLM error', e.message); return null; }
