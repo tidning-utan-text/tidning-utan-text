@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>✏️ Skriva artikel</title>
+<style>
+:root{--bg:#FAFAF7;--fg:#111214;--card:#E9ECEF}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;max-width:720px;margin:0 auto;padding:1rem;line-height:1.5}
+h1{font-size:1.4rem}a{color:inherit}
+.cat button{font-size:2rem;padding:.4rem .8rem;margin:.2rem;border:2px solid var(--card);border-radius:.7rem;background:var(--bg);cursor:pointer}
+.cat button.on{border-color:var(--fg);background:var(--card)}
+label{display:block;margin-top:1rem;font-weight:bold}
+input[type=text],textarea{width:100%;font-size:1.5rem;padding:.5rem;border:2px solid var(--card);border-radius:.7rem;background:#fff}
+textarea{min-height:9rem}
+.pal{font-size:1.7rem;line-height:2.2;cursor:pointer;user-select:none}
+.pal span{padding:.15rem}.pal span:hover{background:var(--card);border-radius:.4rem}
+.row{display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap}
+button.big{font-size:1.1rem;padding:.6rem 1.2rem;border-radius:.7rem;border:0;background:var(--fg);color:var(--bg);cursor:pointer}
+button.ghost{background:var(--card);color:var(--fg)}
+#prev{background:var(--card);border-radius:1rem;padding:1rem;margin-top:1rem}
+#prev .t{font-size:2.2rem;text-align:center}#prev img{width:100%;border-radius:.7rem}#prev .l{font-size:1.6rem;background:var(--bg);border-radius:.5rem;padding:.4rem;margin:.3rem 0}
+#status{margin-top:1rem;padding:.7rem;border-radius:.7rem;display:none}
+.ok{background:#d4edda}.err{background:#f8d7da}
+small{color:#555}
+</style>
+</head>
+<body>
+<h1><a href="./">⬅️</a> ✏️ Skriva artikel</h1>
+<p>Skriv med <b>endast emojis</b> — inga bokstäver eller siffror i rubrik eller rader (klock-emojis 🕗🕛🕕 går bra för tid, upprepa emojis för antal). Använd mobilens emoji-tangentbord eller paletten nedan (klicka för att lägga till i fältet du senast klickade i).</p>
+
+<label>1. Kategori</label>
+<div class="cat" id="cats">
+<button data-c="🌦️">🌦️ väder</button>
+<button data-c="⚽">⚽ sport</button>
+<button data-c="🌍" class="on">🌍 nyhet</button>
+<button data-c="🍔">🍔 mat</button>
+<button data-c="🎬">🎬 kultur</button>
+</div>
+
+<label for="title">2. Rubrik — 5 emojis</label>
+<input type="text" id="title" placeholder="⚽ 🏟️ 🎉 …">
+<small id="titleWarn"></small>
+
+<label for="story">3. Berättelse — 6 rader, en rad per radbrytning</label>
+<textarea id="story" placeholder="🕒 🌍 👀 ⚽&#10;📰 ⚽ ➡️ 🎉 😮&#10;…"></textarea>
+<small id="storyWarn"></small>
+
+<label>Palett (klicka lägger till)</label>
+<div class="pal" id="pal">⚽ 🏟️ 🎉 🏆 🥅 ❌ ✅ ➡️ ⬅️ 🕒 🕗 🕛 🕕 📰 🔍 📍 📈 👥 😮 😡 😂 😍 😞 😱 👏 ❤️ 🌍 🌦️ 🌧️ ☀️ ⛈️ 🌈 🌊 🔥 💥 🚨 🚗 🚦 🏠 🍔 🍕 🎬 🎶 🏥 ⭐ 🎊 🔜 👀 💬 🤝 🕊️</div>
+
+<label for="img">4. Bild (valfri URL, tomt = automatisk bild)</label>
+<input type="text" id="img" placeholder="https://…">
+
+<div class="row">
+<button class="big ghost" id="prevBtn">👀 Förhandsvisa</button>
+<button class="big ghost" id="copyBtn">📋 Kopiera JSON</button>
+</div>
+<div id="prev"></div>
+
+<label for="tok">5. Publicera direkt (valfritt)</label>
+<p><small>Skapa en token: GitHub → Settings → Developer settings → Personal access tokens → <b>Fine-grained tokens</b> → Generate → Repository access: <b>Only select repositories → tidning-utan-text</b> → Permissions: <b>Contents: Read and write</b> → Generate. Klistra in här (sparas bara i din webbläsare):</small></p>
+<input type="text" id="tok" placeholder="github_pat_…" autocomplete="off">
+<div class="row"><button class="big" id="pubBtn">🚀 Publicera till tidningen</button></div>
+<div id="status"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let cat='🌍', lastField=$('title');
+document.querySelectorAll('#cats button').forEach(b=>b.onclick=()=>{cat=b.dataset.c;document.querySelectorAll('#cats button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+['title','story','img'].forEach(id=>$(id).addEventListener('focus',()=>lastField=$(id)));
+$('pal').addEventListener('click',e=>{if(e.target.tagName!=='SPAN')return;const f=lastField;const s=f.selectionStart||f.value.length;f.value=f.value.slice(0,s)+e.target.textContent+f.value.slice(f.selectionEnd||s);f.focus();validate();});
+$('pal').innerHTML=$('pal').textContent.trim().split(/\s+/).map(e=>`<span>${e}</span>`).join('');
+const hasASCII=s=>/[A-Za-z0-9]/.test(s);
+function parseStory(){return $('story').value.split('\n').map(r=>r.trim().split(/\s+/).filter(Boolean)).filter(r=>r.length);}
+function article(){
+  const emojis=$('title').value.trim().split(/\s+/).filter(Boolean);
+  const story=parseStory();
+  let h=0;for(const c of emojis.join(''))h=(h*31+c.codePointAt(0))>>>0;
+  return {cat,emojis,image:$('img').value.trim()||`https://picsum.photos/seed/skriv${h%9973}/1200/700`,size:'small',story};
+}
+function validate(){
+  const a=article();let w=[];
+  if(a.emojis.length!==5)w.push(`Rubrik: ${a.emojis.length} emojis (ska vara 5).`);
+  if(hasASCII(a.emojis.join(' ')))w.push('Rubrik innehåller bokstäver/siffror — ta bort dem.');
+  a.story.forEach((r,i)=>{if(r.length<3||r.length>9)w.push(`Rad ${i+1}: ${r.length} emojis (sikta 5-7).`);});
+  if(hasASCII(a.story.flat().join(' ')))w.push('Berättelsen innehåller bokstäver/siffror.');
+  if(a.story.length!==6)w.push(`Berättelse: ${a.story.length} rader (ska vara 6).`);
+  $('titleWarn').textContent=w.filter(x=>x.startsWith('Rubrik')).join(' ');
+  $('storyWarn').textContent=w.filter(x=>!x.startsWith('Rubrik')).join(' ');
+  return w;
+}
+$('prevBtn').onclick=()=>{
+  const errs=validate();const a=article();
+  $('prev').innerHTML=`<div class="t">${a.emojis.join(' ')}</div>
+  <img src="${a.image}" onerror="this.remove()">${a.story.map(r=>`<div class="l">${r.join(' ')}</div>`).join('')}
+  ${errs.length?'<p>⚠️ '+errs.join('<br>')+'</p>':'<p>✅ Ser bra ut!</p>'}`;
+};
+$('copyBtn').onclick=async()=>{await navigator.clipboard.writeText(JSON.stringify({...article(),id:'NY'},null,2));status('📋 Kopierad! Klistra in den till chefen så lägger jag in den.','ok');};
+function status(msg,cls){const s=$('status');s.style.display='block';s.className=cls;s.innerHTML=msg;}
+const API='https://api.github.com/repos/tidning-utan-text/tidning-utan-text/contents';
+async function getFile(path,tok){
+  const r=await fetch(`${API}/${path}?ref=main`,{headers:{Authorization:`Bearer ${tok}`,Accept:'application/vnd.github+json'}});
+  if(!r.ok)throw new Error('Kunde inte läsa '+path+' ('+r.status+')');
+  const j=await r.json();
+  return {sha:j.sha,content:JSON.parse(atob(j.content))};
+}
+async function putFile(path,data,sha,tok,msg){
+  const r=await fetch(`${API}/${path}`,{method:'PUT',headers:{Authorization:`Bearer ${tok}`,Accept:'application/vnd.github+json'},
+    body:JSON.stringify({message:msg,content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)))),sha,branch:'main'})});
+  if(!r.ok)throw new Error('Kunde inte spara '+path+' ('+r.status+'). Kanske ändrades filen samtidigt — ladda om och försök igen.');
+}
+$('pubBtn').onclick=async()=>{
+  const tok=$('tok').value.trim();
+  if(!tok){status('❌ Klistra in en token först.','err');return;}
+  localStorage.setItem('tut_tok',tok);
+  const errs=validate();
+  if(errs.length&&!confirm('Varningar:\n'+errs.join('\n')+'\nPublicera ändå?'))return;
+  status('⏳ Publicerar…','');
+  try{
+    const a=article();
+    const cur=await getFile('articles.json',tok);
+    const ids=cur.content.articles.map(x=>x.id);
+    const nu={...a,id:Math.max(...ids)+1};
+    cur.content.articles.push(nu);
+    await putFile('articles.json',cur.content,cur.sha,tok,'✏️');
+    const dpath=`data/articles/${cur.content.date}.json`;
+    try{const d=await getFile(dpath,tok);d.content.articles.push(nu);await putFile(dpath,d.content,d.sha,tok,'✏️');}catch(e){}
+    status(`✅ Publicerad som artikel ${nu.id}! Syns på tidningen inom ~1 minut. <a href="./">⬅️ Till tidningen</a>`,'ok');
+  }catch(e){status('❌ '+e.message,'err');}
+};
+$('tok').value=localStorage.getItem('tut_tok')||'';
+</script>
+</body>
+</html>
