@@ -103,7 +103,8 @@ async function getFile(path,tok){
   const r=await fetch(`${API}/${path}?ref=main`,{headers:{Authorization:`Bearer ${tok}`,Accept:'application/vnd.github+json'}});
   if(!r.ok)throw new Error('Kunde inte läsa '+path+' ('+r.status+')');
   const j=await r.json();
-  return {sha:j.sha,content:JSON.parse(atob(j.content))};
+  const bytes=Uint8Array.from(atob(j.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
+  return {sha:j.sha,content:JSON.parse(new TextDecoder().decode(bytes))};
 }
 async function putFile(path,data,sha,tok,msg){
   const r=await fetch(`${API}/${path}`,{method:'PUT',headers:{Authorization:`Bearer ${tok}`,Accept:'application/vnd.github+json'},
