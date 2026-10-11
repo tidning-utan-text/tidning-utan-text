@@ -108,7 +108,7 @@ async function getFile(path,tok){
 async function putFile(path,data,sha,tok,msg){
   const r=await fetch(`${API}/${path}`,{method:'PUT',headers:{Authorization:`Bearer ${tok}`,Accept:'application/vnd.github+json'},
     body:JSON.stringify({message:msg,content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)))),sha,branch:'main'})});
-  if(!r.ok)throw new Error('Kunde inte spara '+path+' ('+r.status+'). Kanske ändrades filen samtidigt — ladda om och försök igen.');
+  if(!r.ok){let det='';try{det=' GitHub säger: '+(await r.json()).message;}catch(e){}throw new Error('Kunde inte spara '+path+' ('+r.status+').'+det);}
 }
 $('pubBtn').onclick=async()=>{
   const tok=$('tok').value.trim();
