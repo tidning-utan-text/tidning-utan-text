@@ -1,4 +1,5 @@
 // Daglig agent-översättning: RSS -> LLM (GitHub Models) -> emoji-artiklar. Fallback till dictionary.
+// SCRIPT VERSION v2-robust (regex JSON-extraktion)
 const RSS = ['https://www.svt.se/nyheter/rss.xml','https://www.svt.se/sport/rss.xml'];
 const LEX = {"val":"🗳️","regering":"🏛️","riksdag":"📜","krig":"⚔️","fred":"🕊️","militär":"🪖","attack":"💥","ränta":"📈","börs":"📊","ekonomi":"💵","fotboll":"⚽","hockey":"🏒","match":"🏟️","seger":"🏆","segrare":"🏆","smash":"🏓","regn":"🌧️","snö":"❄️","storm":"🌪️","klimat":"🌍","översvämning":"🌊","brand":"🔥","polis":"🚓","trafik":"🚦","bil":"🚗","tåg":"🚂","flyg":"✈️","olycka":"🚑","film":"🎬","musik":"🎵","ai":"🤖","sjukhus":"🏥","skola":"🏫","energi":"⚡","olja":"🛢️","gruva":"⛏️","brandman":"🧑‍🚒","strid":"⚔️","gaza":"🏚️"};
 function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
