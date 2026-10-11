@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node scripts/generate.mjs --date=$(date -u +%F)
+      - run: node scripts/fetch-news.mjs --date=$(date -u +%F)
       - run: |
           git config user.name "🤖"
           git config user.email "bot@example.com"
