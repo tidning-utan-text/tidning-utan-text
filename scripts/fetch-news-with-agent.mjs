@@ -3,7 +3,31 @@ const RSS = ['https://www.svt.se/nyheter/rss.xml','https://www.svt.se/sport/rss.
 const LEX = {"val":"🗳️","regering":"🏛️","riksdag":"📜","krig":"⚔️","fred":"🕊️","militär":"🪖","attack":"💥","ränta":"📈","börs":"📊","ekonomi":"💵","fotboll":"⚽","hockey":"🏒","match":"🏟️","seger":"🏆","segrare":"🏆","smash":"🏓","regn":"🌧️","snö":"❄️","storm":"🌪️","klimat":"🌍","översvämning":"🌊","brand":"🔥","polis":"🚓","trafik":"🚦","bil":"🚗","tåg":"🚂","flyg":"✈️","olycka":"🚑","film":"🎬","musik":"🎵","ai":"🤖","sjukhus":"🏥","skola":"🏫","energi":"⚡","olja":"🛢️","gruva":"⛏️","brandman":"🧑‍🚒","strid":"⚔️","gaza":"🏚️"};
 function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
 function clean(s){return (s||'').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').trim();}
-function parseRSS(xml){const o=[];for(const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)){const b=m[1];o.push({title:clean((b.match(/<title>([\s\S]*?)<\/title>/)||[])[1]),desc:clean((b.match(/<description>([\s\S]*?)<\/description>/)||[])[1])});}return o;}
+function parseRSS(xml){const o=[];for(const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)){const b=m[1];o.push({title:clean((b.match(/<title>([\s\S]*?)<\/title>/)||[])[1]),desc:clean((b.match(/<description>([\s\S]*?)<\/description>/)||[])[1]),link:clean((b.match(/<link>([\s\S]*?)<\/link>/)||[])[1])});}return o;}
+async function fetchOgImage(url){
+  if(!url || !url.startsWith('http')) return null;
+  try{
+    const c = new AbortController(); const t = setTimeout(()=>c.abort(), 12000);
+    const r = await fetch(url,{headers:{'user-agent':'Mozilla/5.0 (tidning-utan-text)'},signal:c.signal});
+    clearTimeout(t);
+    if(!r.ok) return null;
+    const html = await r.text();
+    const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    let img = m?.[1] || null;
+    if(img && img.startsWith('//')) img = 'https:' + img;
+    if(img && img.includes('logo')) return null;
+    return img;
+  }catch(e){ return null; }
+}
+async function enrichImages(items){
+  const out = [];
+  for(const n of items){
+    const real = await fetchOgImage(n.link);
+    out.push({...n, realImage: real});
+    console.log(real ? `Bild OK: ${real.slice(0,80)}` : `Bild saknas för: ${n.title.slice(0,50)}, fallback picsum`);
+  }
+  return out;
+}
 function dictTranslate(items){
   return items.map((n,i)=>{
     const txt=(n.title+' '+n.desc).toLowerCase();
@@ -13,7 +37,7 @@ function dictTranslate(items){
     else if(em.includes('🌧️')||em.includes('🌊'))cat='🌦️';
     const title=[cat,...em].slice(0,5);while(title.length<3)title.push('👀');
     const story=[['🕒','🌍','👀',title[1]||cat],['📰',title[1]||cat,'➡️',title[2]||'❗','😮'],['🔍',title[2]||cat,'➕','❗','🤔'],['📍','🗺️',title[1]||cat,'👥'],['📈',title[1]||cat,'👀','👏'],['🔜','👀','🌍']];
-    return {id:i+1,cat,emojis:title,image:`https://picsum.photos/seed/nyhet${hash(n.title)%9973}/1200/700`,size:i===0?'large':'small',story};
+    return {id:i+1,cat,emojis:title,image:n.realImage||`https://picsum.photos/seed/nyhet${hash(n.title)%9973}/1200/700`,size:i===0?'large':'small',story};
   });
 }
 async function agentTranslate(items){
@@ -32,7 +56,7 @@ async function agentTranslate(items){
     txt = txt.replace(/```json|```/g,'').trim();
     const arr = JSON.parse(txt);
     console.log('Agent-översättning OK');
-    return arr.map((a,i)=>({id:i+1,cat:['🌦️','⚽','🌍','🍔','🎬'].includes(a.cat)?a.cat:'🌍',emojis:(a.title||[]).slice(0,5),image:`https://picsum.photos/seed/agent${hash(items[i]?.title||String(i))%9973}/1200/700`,size:i===0?'large':'small',story:(a.story||[]).slice(0,7)}));
+    return arr.map((a,i)=>({id:i+1,cat:['🌦️','⚽','🌍','🍔','🎬'].includes(a.cat)?a.cat:'🌍',emojis:(a.title||[]).slice(0,5),image:items[i]?.realImage||`https://picsum.photos/seed/agent${hash(items[i]?.title||String(i))%9973}/1200/700`,size:i===0?'large':'small',story:(a.story||[]).slice(0,7)}));
   }catch(e){ console.log('LLM error', e.message); return null; }
 }
 async function main(){
@@ -41,6 +65,7 @@ async function main(){
   for(const url of RSS){ try{ const r=await fetch(url,{headers:{'user-agent':'tidning-utan-text'}}); if(r.ok) items.push(...parseRSS(await r.text())); }catch(e){} if(items.length>=8)break; }
   const seen=new Set(); items=items.filter(n=>n.title&&!seen.has(n.title)&&seen.add(n.title)).slice(0,5);
   console.log(`Hämtade ${items.length} nyheter`); items.forEach(n=>console.log(' -',n.title));
+  items = await enrichImages(items);
   let articles = items.length>=3 ? await agentTranslate(items) : null;
   if(!articles || articles.length<3){ console.log('Fallback dictionary'); articles = items.length>=3 ? dictTranslate(items) : null; }
   if(!articles){ const {execSync}=await import('child_process'); execSync(`node scripts/generate.mjs --date=${date}`,{stdio:'inherit'}); return; }
